@@ -1,6 +1,6 @@
 /* Theme palettes. Themes are purely visual: they only define the custom properties below (colours, never sizes).
    js/themes.js sets <html data-theme="id">; an unknown id matches no block, so the :root (classic) values apply.
-   Token groups: page/text · panels · dialogs · buttons · board · premium squares · tiles · racks · toast · states · cover.
+   Token groups: page/text · panels · dialogs · buttons · board · premium squares · tiles (incl. --tile-cast: colour of the shadow a placed tile casts) · racks · toast · states · cover.
    Every theme defines every token. Text/background pairs were checked for WCAG AA (4.5:1) contrast. */
 
 /* ---------- Classic Wood (default) ---------- */
@@ -22,7 +22,7 @@
   --premium-dl:#3e7d97; --premium-tl:#1d4f91; --premium-dw:#b24a5a; --premium-tw:#760f22; --premium-star:#c9a227;
   --premium-text:#ffffff; --premium-star-text:#3b2a05;
 
-  --tile-1:#fcf5de; --tile-2:#e6d4a0; --tile-text:#14532d; --tile-blank-text:#9a3412; --tile-edge:#5a3a1a99;
+  --tile-1:#fcf5de; --tile-2:#e6d4a0; --tile-text:#14532d; --tile-blank-text:#9a3412; --tile-edge:#5a3a1a99; --tile-cast:#000b;
   --tile-cur-1:#fff8dd; --tile-cur-2:#f0dd9a; --tile-cur-ring:#b8860b;
   --tile-pick-ring:#d4af37; --tile-pick-blink:#14532d;
   --tile-swap-1:#f3c9cd; --tile-swap-2:#d99aa1; --tile-swap-text:#4a0f1a; --tile-swap-ring:#ff9aa8;
@@ -54,7 +54,7 @@
   --premium-dl:#2a7a9c; --premium-tl:#3e5fc4; --premium-dw:#b94560; --premium-tw:#9c1f2c; --premium-star:#e0b43a;
   --premium-text:#ffffff; --premium-star-text:#261a00;
 
-  --tile-1:#f3eee2; --tile-2:#dcd4c0; --tile-text:#1d2b24; --tile-blank-text:#a3361d; --tile-edge:#000000aa;
+  --tile-1:#f3eee2; --tile-2:#dcd4c0; --tile-text:#1d2b24; --tile-blank-text:#a3361d; --tile-edge:#000000aa; --tile-cast:#000;
   --tile-cur-1:#fff6d0; --tile-cur-2:#f6e19a; --tile-cur-ring:#c97f00;
   --tile-pick-ring:#ffd479; --tile-pick-blink:#4fd18b;
   --tile-swap-1:#f4c6cc; --tile-swap-2:#e39aa5; --tile-swap-text:#4a0f1a; --tile-swap-ring:#ff7a8f;
@@ -86,7 +86,7 @@
   --premium-dl:#1f7d8f; --premium-tl:#20509c; --premium-dw:#ad562f; --premium-tw:#8c1f33; --premium-star:#dcb94e;
   --premium-text:#ffffff; --premium-star-text:#2d2203;
 
-  --tile-1:#fcf6e0; --tile-2:#ecdfb0; --tile-text:#0f4a36; --tile-blank-text:#9c3a12; --tile-edge:#0a2a1ebb;
+  --tile-1:#fcf6e0; --tile-2:#ecdfb0; --tile-text:#0f4a36; --tile-blank-text:#9c3a12; --tile-edge:#0a2a1ebb; --tile-cast:#000c;
   --tile-cur-1:#fffae0; --tile-cur-2:#f4e6a6; --tile-cur-ring:#a8800f;
   --tile-pick-ring:#f5d676; --tile-pick-blink:#0f4a36;
   --tile-swap-1:#f6d2c6; --tile-swap-2:#e0a591; --tile-swap-text:#4a0f1a; --tile-swap-ring:#ffa0ac;
@@ -118,7 +118,7 @@
   --premium-dl:#377a84; --premium-tl:#1c4768; --premium-dw:#b5532f; --premium-tw:#7e2217; --premium-star:#d4a73a;
   --premium-text:#ffffff; --premium-star-text:#2e1d08;
 
-  --tile-1:#fffaf0; --tile-2:#f2e4c4; --tile-text:#3b2616; --tile-blank-text:#a3361d; --tile-edge:#7a5a2eaa;
+  --tile-1:#fffaf0; --tile-2:#f2e4c4; --tile-text:#3b2616; --tile-blank-text:#a3361d; --tile-edge:#7a5a2eaa; --tile-cast:#3a2210cc;
   --tile-cur-1:#fff6d6; --tile-cur-2:#f7e3a0; --tile-cur-ring:#a8571f;
   --tile-pick-ring:#a8571f; --tile-pick-blink:#3f7a55;
   --tile-swap-1:#f6d0c0; --tile-swap-2:#e6a58e; --tile-swap-text:#4a0f1a; --tile-swap-ring:#fff3e6;

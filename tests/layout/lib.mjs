@@ -17,7 +17,10 @@ export async function launch() {
   if (process.env.CHROME_PATH) return puppeteer.launch({ executablePath: process.env.CHROME_PATH, args: ['--no-sandbox'], headless: true });
   return puppeteer.launch({ executablePath: await chromium.executablePath(), args: [...chromium.args, '--no-sandbox'], headless: 'shell' });
 }
-export async function openGame(browser, vp, { storage = {}, throwingStorage = false } = {}) {
+// The history suites exercise the docked log, so docked is the default here (the app itself defaults to the drawer). Pass storage: {'scrabble.layout': ...} to override.
+export const DOCKED = { 'scrabble.layout': '{"hist":"docked"}' };
+export async function openGame(browser, vp, { storage: given = {}, throwingStorage = false } = {}) {
+  const storage = { ...DOCKED, ...given };
   const page = await browser.newPage();
   await page.setViewport(vp);
   await page.goto(BASE + '/__blank__', { waitUntil: 'load' }).catch(() => {});   // reach the origin, then wipe its storage (single-process Chromium has no extra contexts)

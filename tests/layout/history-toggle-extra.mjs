@@ -45,9 +45,13 @@ console.log('# persistence, invalid + unavailable storage');
   }
   { const r = await openGame(b, VIEWPORTS['desktop 1366x768'], { storage: { [KEY]: 'false' } });
     ok((await state(r.page)).hidden === true, "stored 'false' -> hidden at startup"); await closeGame(r.page); }
-  { const r = await openGame(b, VIEWPORTS['desktop 1366x768'], { throwingStorage: true });
-    ok((await state(r.page)).hidden === false, 'unavailable localStorage -> visible by default');
-    await tog(r.page); ok((await state(r.page)).hidden === true, 'toggle still works without storage'); await tog(r.page); ok((await state(r.page)).hidden === false, '...and back');
+  { // No storage means no saved layout either, so the app falls back to its default (the drawer, opened from the word-log icon) and must still work.
+    const r = await openGame(b, VIEWPORTS['desktop 1366x768'], { throwingStorage: true });
+    const drawer = () => r.page.$eval('#hist', h => ({ open: h.classList.contains('open'), exp: document.querySelector('#bLog').getAttribute('aria-expanded') }));
+    const logIcon = () => r.page.$eval('#bLog', e => e.click());   // programmatic click: the open drawer may sit over the icon
+    ok(await r.page.$eval('html', e => e.dataset.hist === 'drawer') && (await drawer()).open === false, 'unavailable localStorage -> default drawer layout, closed');
+    await logIcon(); ok(JSON.stringify(await drawer()) === '{"open":true,"exp":"true"}', 'word-log icon opens the drawer without storage');
+    await logIcon(); ok(JSON.stringify(await drawer()) === '{"open":false,"exp":"false"}', '...and closes it again');
     ok(r.errors.length === 0, 'no page errors without storage: ' + r.errors.join(';')); await closeGame(r.page); }
 }
 

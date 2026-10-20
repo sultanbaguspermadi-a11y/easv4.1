@@ -57,4 +57,22 @@ ok(!/const VERSION = 'dev'/.test(sw), 'sw.js VERSION has been stamped');
 try { execFileSync('node', ['tools/stamp-sw.mjs', '--check'], { cwd: root, stdio: 'pipe' }); ok(true); }
 catch (e) { ok(false, 'sw.js VERSION is current: ' + (e.stderr || e.stdout || e.message)); }
 
+// --- themes + board styling guards
+const themesCss = rd('css/themes.css'), styleCss = rd('css/style.css');
+const themeBlocks = [...themesCss.matchAll(/\[data-theme="(\w+)"\]\s*\{([\s\S]*?)\n\}/g)].map(m => [m[1], new Set([...m[2].matchAll(/(--[\w-]+)\s*:/g)].map(t => t[1]))]);
+const allTokens = new Set(themeBlocks.flatMap(([, t]) => [...t]));
+ok(themeBlocks.length === 4, 'four theme blocks found in themes.css');
+for (const [id, toks] of themeBlocks) { const missing = [...allTokens].filter(t => !toks.has(t)); ok(!missing.length, `theme ${id} defines every token (missing: ${missing.join(', ')})`); }
+ok(allTokens.has('--tile-cast'), 'themes define --tile-cast (colour of the shadow a placed tile casts)');
+// Placed tiles carry no glow: a blur-only shadow (0 0 Npx) on .tile.cur is what used to make them glow after placement. The glow belongs to .pick (touch) only.
+const curRule = styleCss.match(/\n\.tile\.cur\{([^}]*)\}/);
+const layers = (curRule?.[1].match(/box-shadow:([^;]*)/)?.[1] ?? '').split(/,(?![^(]*\))/).map(l => l.trim()).filter(Boolean);
+ok(curRule && layers.length > 0 && layers.every(l => l.startsWith('inset') || !/^0 0 [\d.]+(px|cqw)/.test(l)), '.tile.cur (placed, unscored tile) has no outer glow (only an inset ring): ' + layers.join(' | '));
+ok(/\.sq\.has::before\{[^}]*var\(--tile-cast/.test(styleCss), 'board tiles cast their shadow from the square (.sq.has::before, themed by --tile-cast)');
+ok(/\.sq\.has\.fall::before\{animation:cast/.test(styleCss) && /@keyframes cast\{from\{transform:[^}]*opacity/.test(styleCss), 'landing shadow animates transform + opacity only');
+ok(!/@keyframes cast\{[^]*?(box-shadow|filter)/.test(styleCss.match(/@keyframes cast\{[^\n]*/)[0]), 'landing shadow keyframes do not animate box-shadow/filter (repaint-free)');
+// Word log: icon-only button that still has an accessible name
+const indexHtml = rd('index.html'), bLog = indexHtml.match(/<button[^>]*id="bLog"[^>]*>([\s\S]*?)<\/button>/);
+ok(bLog && /aria-label="[^"]+"/.test(bLog[0]) && /<svg/.test(bLog[1]) && !/>\s*[^<\s]/.test(bLog[1].replace(/<svg[\s\S]*<\/svg>/, '')), 'word-log button is icon-only (svg, no text) and has an aria-label');
+
 console.log(`${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

@@ -169,6 +169,65 @@ setTheme('desert'); startViaFlow('expanded', 25); ok(document.documentElement.da
 setTheme('bogus'); ok(document.documentElement.dataset.theme === 'desert', 'setTheme ignores invalid id');
 ok(Object.keys(THEMES).join() === 'classic,dark,emerald,desert', 'four themes');
 
+group('board tile state (cast shadow classes), duration picker, end-of-game result');
+{
+  const UI = await imp('ui.js');
+  startViaFlow('expanded', 25); S.paused = true;
+  const sqAt = (r, c) => document.querySelector(`#board .sq[data-r="${r}"][data-c="${c}"]`);
+  const has = (el, ...cls) => cls.every(c => el.classList.contains(c));
+  const [t1, t2, t3] = cur().rack.filter(t => t && !t.blank);
+  // a tile just placed: owns a shadow (has), is unscored (mv), raised (up) and landing (fall)
+  G.place(t1, 7, 7);
+  ok(has(sqAt(7, 7), 'has', 'mv', 'up', 'fall'), 'placed tile square: has + mv + up + fall, got ' + sqAt(7, 7).className);
+  ok(sqAt(7, 7).querySelector('.tile').classList.contains('cur'), 'pending tile keeps its .cur marker (ring + tint, no glow)');
+  ok(!has(sqAt(0, 1), 'has') && !sqAt(0, 1).querySelector('.tile'), 'empty square owns no shadow');
+  // the next render drops the one-shot states, the pending state stays
+  G.place(t2, 7, 8);
+  ok(has(sqAt(7, 7), 'has', 'mv') && !has(sqAt(7, 7), 'up') && !has(sqAt(7, 7), 'fall'), 'previous tile settles: mv stays, up/fall are gone, got ' + sqAt(7, 7).className);
+  ok(has(sqAt(7, 8), 'has', 'mv', 'up', 'fall'), 'newest tile lands');
+  // picking a pending tile raises its square above the neighbours (z-index) without touching mv
+  S.pick = t1; UI.render();
+  ok(has(sqAt(7, 7), 'has', 'mv', 'up') && !has(sqAt(7, 8), 'up'), 'picked pending tile is the only raised one');
+  S.pick = null;
+  // scoring the move: shadow stays, pending state and ring go
+  G.submit();
+  ok(has(sqAt(7, 7), 'has') && !has(sqAt(7, 7), 'mv') && !sqAt(7, 7).querySelector('.tile').classList.contains('cur'), 'scored tile: still casts, no longer pending, got ' + sqAt(7, 7).className);
+  ok(has(sqAt(7, 8), 'has') && !has(sqAt(7, 8), 'mv'), 'every tile of the scored move settles');
+
+  // duration picker: one button per length (number over unit), only the length in use is marked
+  const sf = document.querySelector('#sf');
+  ok(sf.children.length === C.DURATIONS.length && [...sf.children].every((b, i) => +b.value === C.DURATIONS[i] && b.querySelector('b').textContent === String(C.DURATIONS[i]) && b.querySelector('span')?.textContent === 'دقيقة'), 'duration picker: one button per length (number + unit)');
+  app.minutes = 40; chooseMode(); choose('#md', 'basic');
+  ok([...sf.children].filter(b => b.getAttribute('aria-current') === 'true').map(b => b.value).join() === '40', 'duration picker marks only the length in use (40)');
+  app.minutes = 10; choose('#sd', 'back'); choose('#md', 'basic');
+  ok([...sf.children].filter(b => b.getAttribute('aria-current') === 'true').map(b => b.value).join() === '10', 'mark follows the current length when reopened (10)');
+  choose('#sd', '25'); choose('#dlg', 'ok');
+
+  // end of game: structured, centred result
+  const dlg = document.querySelector('#dlg'), q = s => dlg.querySelector(s);
+  const fresh = () => { S.ended = false; S.paused = true; S.players.forEach(p => { p.rack = p.rack.map(() => null); p.ms = 0; }); };
+  fresh(); const left = S.bag.pop(); S.players[1].rack[0] = left; S.players[0].ms = 3 * 60000;
+  S.players[0].score = 50; S.players[1].score = 30;
+  G.endGame('rack');
+  ok(dlg.open && dlg.classList.contains('result'), 'end of game opens the dialog in its result layout');
+  ok(q('.resWhy').textContent === C.REASONS.rack, 'reason line: ' + q('.resWhy').textContent);
+  ok(q('.resWin').textContent.includes('الفائز: اللاعب الأول') && !q('.resWin').classList.contains('draw') && !!q('.resWin svg'), 'winner line names the winner (with trophy)');
+  const cards = [...dlg.querySelectorAll('.resCard')];
+  ok(cards.length === 2 && has(cards[0], 'win') && !has(cards[1], 'win'), 'two player cards, only the winner outlined');
+  ok(cards[0].querySelector('.resScore').textContent === '53' && cards[1].querySelector('.resScore').textContent === String(Math.max(0, 30 - left.v)), `scores shown after deduction + time bonus: ${cards.map(c => c.querySelector('.resScore').textContent)}`);
+  ok(cards[0].textContent.includes('+3') && cards[1].textContent.includes('خصم ' + left.v), 'cards show the time bonus and the deduction');
+  choose('#dlg', '');
+  fresh(); S.players[0].score = 40; S.players[1].score = 40;
+  G.endGame('time');
+  ok(q('.resWin').classList.contains('draw') && q('.resWin').textContent === 'تعادل!' && !dlg.querySelector('.resCard.win'), 'draw: "تعادل!" and nobody outlined');
+  ok(q('.resWhy').textContent === C.REASONS.time, 'reason line for time-out');
+  choose('#dlg', '');
+  // an ordinary confirmation afterwards must not inherit the result layout
+  UI.ask('عنوان', 'نص عادي', 'موافق', () => {});
+  ok(!dlg.classList.contains('result') && document.querySelector('#dM').textContent === 'نص عادي' && !q('.res'), 'plain ask() after a result: no result layout, plain text');
+  choose('#dlg', '');
+}
+
 group('theme persistence / invalid values');
 for (const [label, store, expect] of [['saved dark', { 'scrabble.theme': 'dark' }, 'dark'], ['empty', {}, 'classic'], ['invalid', { 'scrabble.theme': 'neon' }, 'classic'], ['proto key', { 'scrabble.theme': 'toString' }, 'classic'], ['corrupted json', { 'scrabble.theme': '{"x":' }, 'classic']]) {
   boot(store); const m = await import(`${ROOT}/js/themes.js?${label}`);

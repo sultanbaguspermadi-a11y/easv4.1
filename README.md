@@ -82,7 +82,7 @@ Device preferences stored in `localStorage` under `scrabble.layout`; they only s
 - **Floating windows** (`js/float.js`): the settings panel (non-modal, game frozen behind it) and the word-log drawer are draggable windows with identical behaviour: drag the title, or focus it and use the arrow keys (Shift = larger step); double-click the title or use *إعادة مواضع النوافذ العائمة* to reset. Positions are clamped to the viewport and remembered per device. Esc closes either window.
 - **سجل الكلمات**: *عند الطلب* (default) keeps the log out of the layout and opens it as a drawer from a small icon button in the bottom corner of the board, on the end side of the bag counter (close with the same button or Esc; the label stays available to screen readers and as a tooltip); *مثبّت* keeps the original always-visible panel with its hide/show toggle.
 
-Note: `tests/layout/history-toggle*.mjs` assume the docked log, so set `scrabble.layout` to `{"hist":"docked"}` before they run.
+Note: `tests/layout/history-toggle*.mjs` exercise the docked log, so the test helper `openGame` presets `scrabble.layout` to `{"hist":"docked"}` (override it with the `storage` option); `layout/log-icon.mjs` covers the default drawer.
 
 ## PWA: install, offline play, match recovery
 
@@ -209,9 +209,10 @@ tests/            dev-only tests (not needed to play; see "Tests")
     lib.mjs       real-browser helpers (viewports, geometry, pixel checks)
     serve.mjs     tiny static server used by the tests
     baseline.mjs  regenerates baseline.json
-    baseline.json layout measured before the history toggle existed
+    baseline.json reference layout of the docked history panel (see "Tests")
     history-toggle.mjs        bounding boxes before/after hide and show in 8 viewports
     history-toggle-extra.mjs  keyboard, persistence, extreme dimensions, all themes
+    log-icon.mjs              default drawer: the word-log icon's size, corner, no overlap, open/close (2 layouts x 8 viewports)
 
 manifest.webmanifest  PWA manifest
 sw.js            service worker
@@ -235,11 +236,12 @@ npm install
 npm test          # all suites; or: node run-all.mjs "extra.mjs b" to run one
 ```
 
-- `logic/*` run the real modules against jsdom.
+- `logic/*` run the real modules against jsdom (including the tile state classes behind the cast shadow, the duration picker and the end-of-game result).
 - `layout/*` drive a real Chromium (the Linux build bundled with `@sparticuz/chromium`; set `CHROME_PATH` to use your own Chrome) and compare the bounding boxes of the racks, buttons, panels, board and history before and after toggling, in portrait and landscape phone, tablet and desktop viewports. Hidden state is also checked pixel-wise, with a positive control showing that visible history would be detected.
-- `pwa/static.mjs` (no browser): manifest and icons (real PNGs, sizes, alpha), relative-path rule, precache coverage of every shipped file and ES import, version stamp.
+- `pwa/static.mjs` (no browser): every theme defines every token, placed tiles have no glow, the landing shadow animates only transform/opacity; manifest and icons (real PNGs, sizes, alpha), relative-path rule, precache coverage of every shipped file and ES import, version stamp.
 - `pwa/e2e.mjs` (Chromium via `playwright-core`; set `CHROME_PATH` for your own Chrome): service worker under a sub-path and at the root, Chrome's manifest/installability check, offline launch with the server actually stopped, match recovery (including an unsubmitted move, blanks, tampered saves), failed and successful updates, install UI (Android prompt, dismissal, iOS guide). It does **not** run on real devices or real HTTPS hosting.
-- `layout/baseline.json` is the layout of the app before the toggle existed. If you change the layout on purpose, regenerate it from the previous version (see the comment in `baseline.mjs`).
+- `layout/baseline.json` is the reference layout the docked history panel must match while visible (originally measured before the toggle existed; re-taken after the control buttons became icon-only). If you change the docked layout on purpose, regenerate it from a trusted checkout (see the comment in `baseline.mjs`).
+- Known environment sensitivity: the pixel-residue check in `layout/history-toggle.mjs` can report a 1px full-width raster seam at the 360x640 viewport on some Chromium builds (it did on the build used while developing this change, with or without these edits). If it is the only failure, it is a screenshot artefact, not a layout regression.
 
 ## Credits
 

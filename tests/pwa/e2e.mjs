@@ -276,5 +276,24 @@ console.log('--- E. persistence of an unsubmitted move and of blank tiles');
   await ctx.close(); S.srv.close();
 }
 
+// =====================================================================================================
+console.log('--- F. touch feedback: the picked tile flickers (also with "reduce motion" on), a placed tile has no ring and no glow');
+for (const motion of ['no-preference', 'reduce']) {
+  const S = await serve(root, '/g2/'), ctx = await browser.newContext({ reducedMotion: motion }), page = await open(ctx, S.base);
+  await startGame(page);
+  await page.click('.panel.on .rack .tile:not(.blank)');
+  const sample = () => page.$eval('.tile.pick', e => { const c = getComputedStyle(e); return { anim: c.animationName, shadow: c.boxShadow }; });
+  const seen = new Set(); for (let i = 0; i < 6; i++) { seen.add((await sample()).shadow); await sleep(250); }
+  ok((await sample()).anim === 'blink' && seen.size > 1, `[${motion}] picked tile flickers: animation "${(await sample()).anim}", ${seen.size} distinct shadows over 1.5 s`);
+  await page.click('.sq[data-r="7"][data-c="7"]'); await sleep(450);
+  ok(await page.$$eval('.tile.pick', n => n.length) === 0, `[${motion}] nothing stays in the picked state after placing`);
+  const placed = await page.$eval('#board .tile.cur', e => { const c = getComputedStyle(e); return { anim: c.animationName, shadow: c.boxShadow }; });
+  // computed layers look like "rgba(...) x y blur spread [inset]": a glow has blur, a ring has a spread of 2px or more
+  const layers = placed.shadow.split(/,(?![^(]*\))/).map(l => l.replace(/rgba?\([^)]*\)/g, '').trim().split(/\s+/)).map(t => ({ blur: parseFloat(t[2]), spread: parseFloat(t[3]) }));
+  ok(placed.anim !== 'blink' && layers.every(l => l.blur === 0 && l.spread <= 1), `[${motion}] placed tile has no glow and no ring (shadow: ${placed.shadow})`);
+  ok(page.problems.length === 0, `[${motion}] no console errors: ` + page.problems.join('; '));
+  await ctx.close(); S.srv.close();
+}
+
 await browser.close();
 console.log(`${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

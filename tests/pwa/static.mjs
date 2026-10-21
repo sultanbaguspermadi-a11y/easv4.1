@@ -64,10 +64,12 @@ const allTokens = new Set(themeBlocks.flatMap(([, t]) => [...t]));
 ok(themeBlocks.length === 4, 'four theme blocks found in themes.css');
 for (const [id, toks] of themeBlocks) { const missing = [...allTokens].filter(t => !toks.has(t)); ok(!missing.length, `theme ${id} defines every token (missing: ${missing.join(', ')})`); }
 ok(allTokens.has('--tile-cast'), 'themes define --tile-cast (colour of the shadow a placed tile casts)');
-// Placed tiles carry no glow: a blur-only shadow (0 0 Npx) on .tile.cur is what used to make them glow after placement. The glow belongs to .pick (touch) only.
+// Placed tiles carry no glow and no coloured outline: a pending tile (.cur) is told apart by tint + lifted shadow only. The flicker belongs to .pick (touch) only.
 const curRule = styleCss.match(/\n\.tile\.cur\{([^}]*)\}/);
-const layers = (curRule?.[1].match(/box-shadow:([^;]*)/)?.[1] ?? '').split(/,(?![^(]*\))/).map(l => l.trim()).filter(Boolean);
-ok(curRule && layers.length > 0 && layers.every(l => l.startsWith('inset') || !/^0 0 [\d.]+(px|cqw)/.test(l)), '.tile.cur (placed, unscored tile) has no outer glow (only an inset ring): ' + layers.join(' | '));
+ok(curRule && !/box-shadow/.test(curRule[1]) && /background:/.test(curRule[1]), '.tile.cur (placed, unscored tile) has no box-shadow of its own: no ring, no glow (edge + cast shadow come from .sq .tile and .sq.has::before)');
+ok(!/tile-cur-ring/.test(styleCss + themesCss), 'the old pending-tile ring token is gone');
+const rm = styleCss.match(/@media\(prefers-reduced-motion:reduce\)\{[\s\S]*?\n\.tile\.pick\{[^}]*\}\}/);
+ok(rm && /\.tile\.pick\{animation:blink[^}]*!important/.test(rm[0]) && /\*,\*::before,\*::after\{animation:none!important/.test(rm[0]), 'reduce-motion still disables every animation except the picked tile\'s flicker');
 ok(/\.sq\.has::before\{[^}]*var\(--tile-cast/.test(styleCss), 'board tiles cast their shadow from the square (.sq.has::before, themed by --tile-cast)');
 ok(/\.sq\.has\.fall::before\{animation:cast/.test(styleCss) && /@keyframes cast\{from\{transform:[^}]*opacity/.test(styleCss), 'landing shadow animates transform + opacity only');
 ok(!/@keyframes cast\{[^]*?(box-shadow|filter)/.test(styleCss.match(/@keyframes cast\{[^\n]*/)[0]), 'landing shadow keyframes do not animate box-shadow/filter (repaint-free)');

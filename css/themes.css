@@ -23,7 +23,7 @@
   --premium-text:#ffffff; --premium-star-text:#3b2a05;
 
   --tile-1:#fcf5de; --tile-2:#e6d4a0; --tile-text:#14532d; --tile-blank-text:#9a3412; --tile-edge:#5a3a1a99; --tile-cast:#000b;
-  --tile-cur-1:#fff8dd; --tile-cur-2:#f0dd9a; --tile-cur-ring:#b8860b;
+  --tile-cur-1:#ffeeb0; --tile-cur-2:#f3cf63;
   --tile-pick-ring:#d4af37; --tile-pick-blink:#14532d;
   --tile-swap-1:#f3c9cd; --tile-swap-2:#d99aa1; --tile-swap-text:#4a0f1a; --tile-swap-ring:#ff9aa8;
 
@@ -55,7 +55,7 @@
   --premium-text:#ffffff; --premium-star-text:#261a00;
 
   --tile-1:#f3eee2; --tile-2:#dcd4c0; --tile-text:#1d2b24; --tile-blank-text:#a3361d; --tile-edge:#000000aa; --tile-cast:#000;
-  --tile-cur-1:#fff6d0; --tile-cur-2:#f6e19a; --tile-cur-ring:#c97f00;
+  --tile-cur-1:#ffeeb0; --tile-cur-2:#f4d576;
   --tile-pick-ring:#ffd479; --tile-pick-blink:#4fd18b;
   --tile-swap-1:#f4c6cc; --tile-swap-2:#e39aa5; --tile-swap-text:#4a0f1a; --tile-swap-ring:#ff7a8f;
 
@@ -87,7 +87,7 @@
   --premium-text:#ffffff; --premium-star-text:#2d2203;
 
   --tile-1:#fcf6e0; --tile-2:#ecdfb0; --tile-text:#0f4a36; --tile-blank-text:#9c3a12; --tile-edge:#0a2a1ebb; --tile-cast:#000c;
-  --tile-cur-1:#fffae0; --tile-cur-2:#f4e6a6; --tile-cur-ring:#a8800f;
+  --tile-cur-1:#ffeeb0; --tile-cur-2:#f2d066;
   --tile-pick-ring:#f5d676; --tile-pick-blink:#0f4a36;
   --tile-swap-1:#f6d2c6; --tile-swap-2:#e0a591; --tile-swap-text:#4a0f1a; --tile-swap-ring:#ffa0ac;
 
@@ -119,7 +119,7 @@
   --premium-text:#ffffff; --premium-star-text:#2e1d08;
 
   --tile-1:#fffaf0; --tile-2:#f2e4c4; --tile-text:#3b2616; --tile-blank-text:#a3361d; --tile-edge:#7a5a2eaa; --tile-cast:#3a2210cc;
-  --tile-cur-1:#fff6d6; --tile-cur-2:#f7e3a0; --tile-cur-ring:#a8571f;
+  --tile-cur-1:#ffeab4; --tile-cur-2:#f4d27a;
   --tile-pick-ring:#a8571f; --tile-pick-blink:#3f7a55;
   --tile-swap-1:#f6d0c0; --tile-swap-2:#e6a58e; --tile-swap-text:#4a0f1a; --tile-swap-ring:#fff3e6;
 

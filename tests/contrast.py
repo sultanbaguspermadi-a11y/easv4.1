@@ -44,12 +44,13 @@ for name, t in themes.items():
     tb = [col('--tile-1'), col('--tile-2')]
     pairs += [('tile letter', col('--tile-text'), tb, 4.5), ('tile blank letter', col('--tile-blank-text'), tb, 4.5),
               ('tile current', col('--tile-text'), [col('--tile-cur-1'), col('--tile-cur-2')], 4.5),
+              ('tile current blank letter', col('--tile-blank-text'), [col('--tile-cur-1'), col('--tile-cur-2')], 4.5),
               ('tile swap', col('--tile-swap-text'), [col('--tile-swap-1'), col('--tile-swap-2')], 4.5),
               ('toast ok', col('--ok-text'), [over(rgba(t['--ok-bg']), p) for p in panels], 4.5),
               ('toast bad', col('--bad-text'), [over(rgba(t['--bad-bg']), p) for p in panels], 4.5)]
     for k in ('turn-dot', 'time-low', 'time-crit', 'verdict-ok', 'verdict-bad'): pairs.append((k + ' on panel', col('--' + k), panels, 3.0 if k == 'turn-dot' else 4.5))
     # non-text: state rings must be visible against the tile / dialog
-    pairs += [('cur ring vs tile', col('--tile-cur-ring'), [col('--tile-cur-1')], 2.0), ('swap ring vs panel/rack', col('--tile-swap-ring'), [col('--rack-1'), col('--rack-2')], 1.5),
+    pairs += [('swap ring vs panel/rack', col('--tile-swap-ring'), [col('--rack-1'), col('--rack-2')], 1.5),
               ('focus vs dialog', col('--focus'), [col('--dialog-bg')], 3.0), ('focus vs page', col('--focus'), pages, 3.0)]
     for lab_, fg, bgs, mn in pairs:
         worst = min(cr(fg, b) for b in bgs)
@@ -59,6 +60,10 @@ for name, t in themes.items():
     for (a, ca), (b, cb) in itertools.combinations(sq.items(), 2):
         d = de(ca, cb)
         if d < 18: bad += 1; print(f'  FAIL [{name}] squares {a} vs {b}: dE {d:.1f} < 18')
+    # a pending tile (placed, not scored) has no ring or glow any more: its golden tint alone must clearly differ from a scored tile, at both gradient ends
+    for a, b in (('--tile-cur-1', '--tile-1'), ('--tile-cur-2', '--tile-2')):
+        d = de(col(a), col(b))
+        if d < 15: bad += 1; print(f'  FAIL [{name}] pending tile tint {a} vs {b}: dE {d:.1f} < 15 (would be hard to tell from a scored tile)')
     # tile must stand out from an empty square and from the board frame
     for k in ('--sq-empty',):
         d = de(col('--tile-1'), col(k))

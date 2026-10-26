@@ -21,6 +21,7 @@
 try{var d=document.documentElement.dataset;d.hist='drawer';var l=JSON.parse(localStorage.getItem('scrabble.layout'))||{};d.bstyle=/^(iconlabel|text)$/.test(l.bstyle)?l.bstyle:'icon';d.pdock=/^(top|middle)$/.test(l.pdock)?l.pdock:'bottom';if(l.layout==='duel'){d.layout='duel';if(l.p1==='right')d.swap='true'}if(l.hist==='docked')d.hist='docked'}catch(e){}</script>
 <link rel="stylesheet" href="css/themes.css">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/float.css">
 <link rel="stylesheet" href="css/cover.css">
 <link rel="stylesheet" href="css/pwa.css">
 </head>
@@ -62,7 +63,7 @@ try{var d=document.documentElement.dataset;d.hist='drawer';var l=JSON.parse(loca
 <h3 class="setH">الأبعاد</h3>
 <div class="dimList" id="dmB"></div>
 <button class="btn" id="dmReset" type="button">إعادة ضبط الأبعاد</button>
-<button class="btn" id="flReset" type="button">إعادة مواضع النوافذ العائمة</button>
+<button class="btn" id="flReset" type="button">إعادة ضبط العناصر العائمة</button>
 <h3 class="setH">التطبيق</h3>
 <div class="pwaBox">
 <p id="pwaStatus" class="pwaStatus" role="status"></p>

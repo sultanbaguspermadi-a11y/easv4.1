@@ -1,0 +1,61 @@
+/* Floating dialogue + optional Floating Workspace (js/float.js).
+   Part 1 applies to the in-game dialogue in every layout. Part 2 is scoped to html[data-floating="true"]: with that attribute absent
+   (the default) none of it matches, so the normal responsive layout and the Dimensions sliders stay authoritative.
+   Colours come from theme tokens only. z-index bands: modules 10-19 < word-log 30 < toast 45 < dialogue 50 < native modals (top layer). */
+
+/* ===== 1. Gameplay dialogue: a light floating panel (the end-of-game result and all setup dialogs keep the conventional centred modal, .dlgModal) ===== */
+#dlg:not(.dlgModal){position:fixed;inset:auto;margin:0;z-index:50;width:min(calc(100vw - 16px),380px);max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;padding:12px 16px 16px;
+background:var(--dialog-bg);background:color-mix(in srgb,var(--dialog-bg) 92%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 10px 30px #000b}
+#dlg:not(.dlgModal) #dT{position:relative;cursor:grab;touch-action:none;padding-inline-start:1.4em;border-radius:6px;-webkit-user-select:none;user-select:none}
+#dlg:not(.dlgModal) #dT::before{content:"⠿";position:absolute;inset-inline-start:0;opacity:.55}
+#dlg:not(.dlgModal) #dT:active{cursor:grabbing}
+#dlg:not(.dlgModal) #dT:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+#dlg:not(.dlgModal) #dM{margin-bottom:12px}
+
+/* ===== 2. Floating Workspace ===== */
+html[data-floating="true"] body{padding:0;min-height:0;height:100dvh;overflow:hidden}
+html[data-floating="true"] body .app{display:block;max-width:none;margin:0;gap:0}
+html[data-floating="true"] body :is(.side,.players){display:contents}   /* the panels and the controls become independent modules */
+
+/* modules: board, the two player panels, controls (one palette), word log */
+html[data-floating="true"] body :is(.boardWrap,.panel,.ctrls,.hist){position:fixed;inset:auto;margin:0;box-sizing:border-box;min-width:0;z-index:10;contain:none}
+html[data-floating="true"] body :is(.boardWrap,.ctrls){border-radius:14px;box-shadow:inset 0 0 0 1px var(--panel-line),0 8px 24px #0007;
+background:var(--panel-bg);background:color-mix(in srgb,var(--panel-bg) 78%,transparent);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+html[data-floating="true"] body .flActive{outline:2px solid var(--accent);outline-offset:0}
+
+/* board: real width, never a transform; the board inside stays 1:1 and every cell, tile and glyph scales with it (cqw units) */
+html[data-floating="true"] body .boardWrap{display:block;position:fixed;width:var(--float-board-size,min(92vw,480px));padding:22px 0 14px}
+html[data-floating="true"] body .board{width:100%;max-width:none}
+html[data-floating="true"] body .logBtn{inset-block-end:14px}
+
+/* players: width is the only free dimension; the rack fills the panel width and its slots stay square */
+html[data-floating="true"] body .panel{padding-top:24px;padding-bottom:14px;border-color:var(--panel-line)}
+html[data-floating="true"] body .panel.on{border-color:var(--accent)}
+html[data-floating="true"] body .rack{width:100%;max-width:none}
+
+/* controls: one palette; the buttons reflow with its width and keep their own size */
+html[data-floating="true"] body .ctrls{padding:24px 8px 16px;grid-template-columns:repeat(auto-fit,minmax(calc(84px*var(--btn-scale)),1fr))}
+html[data-floating="true"][data-bstyle="icon"] body .ctrls{grid-template-columns:repeat(auto-fit,minmax(calc(40px*var(--btn-scale)),1fr))}
+html[data-floating="true"][data-bstyle="iconlabel"] body .ctrls{grid-template-columns:repeat(auto-fit,minmax(calc(64px*var(--btn-scale)),1fr))}
+
+/* word log (drawer: visibility/transform rules in style.css still decide when it is shown; docked: always a module) */
+html[data-floating="true"] body .hist{padding-bottom:22px;box-shadow:0 8px 24px #0008}
+html[data-floating="true"] .hist .floatHandle,html[data-floating="true"] #dlg:not(.dlgModal) .floatHandle{position:relative;cursor:grab;touch-action:none;padding-inline-start:1.4em;border-radius:6px}
+html[data-floating="true"] .hist .floatHandle::before{content:"⠿";position:absolute;inset-inline-start:0;opacity:.55}
+html[data-floating="true"] #dlg:not(.dlgModal){padding-bottom:24px}
+
+/* the message bar no longer owns a grid row: it is a small overlay that only exists while it has text */
+html[data-floating="true"] body #toast{position:fixed;z-index:45;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:max-content;max-width:min(92vw,520px);
+min-height:0;pointer-events:none;box-shadow:0 4px 14px #0007}
+html[data-floating="true"] body #toast:empty{display:none}
+
+/* move strip (top) and resize grip (bottom-right corner): explicit, subtle, and the only drag regions, so gameplay gestures never move a module */
+.flMove{position:absolute;top:0;inset-inline:0;height:22px;margin:0;padding:0;border:0;background:transparent;color:var(--text-main);opacity:.6;cursor:grab;touch-action:none;
+display:grid;place-items:center;border-radius:12px 12px 0 0;-webkit-user-select:none;user-select:none;z-index:4}
+.flMove::before{content:"";width:34px;height:6px;border-block:2px solid currentColor;border-radius:2px}
+.flMove:hover,.flActive>.flMove{opacity:1}.flMove:active{cursor:grabbing}
+.flGrip{position:absolute;right:0;bottom:0;width:24px;height:24px;margin:0;padding:0;border:0;background:transparent;color:var(--text-main);opacity:.55;cursor:nwse-resize;touch-action:none;border-radius:0 0 12px 0;z-index:4}
+.flGrip svg{position:absolute;right:3px;bottom:3px;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.flGrip::after{content:"";position:absolute;inset:-10px -10px -10px -14px}   /* bigger touch target than the 14px glyph */
+.flGrip:hover,.flActive>.flGrip{opacity:1}
+.flMove:focus-visible,.flGrip:focus-visible{outline:3px solid var(--focus);outline-offset:-3px;opacity:1}

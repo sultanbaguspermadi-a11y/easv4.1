@@ -9,6 +9,7 @@ export function boot(storage = {}) {
   for (const [k, v] of Object.entries(storage)) w.localStorage.setItem(k, v);
   // <dialog> polyfill: showModal sets `open`, close fires the 'close' event like a browser would
   w.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+  w.HTMLDialogElement.prototype.show = function () { this.setAttribute('open', ''); };   // the in-game dialogue is non-modal now
   w.HTMLDialogElement.prototype.close = function (rv) {
     if (rv !== undefined) this.returnValue = rv;
     if (!this.hasAttribute('open')) return;

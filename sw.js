@@ -19,7 +19,7 @@
  */
 'use strict';
 
-const VERSION = '406cf782c525';   // stamped by tools/stamp-sw.mjs
+const VERSION = 'cb068e25bd34';   // stamped by tools/stamp-sw.mjs
 const PREFIX = 'arabic-scrabble-';
 const SHELL = `${PREFIX}shell-${VERSION}`;
 const RUNTIME = `${PREFIX}runtime-${VERSION}`;
@@ -30,6 +30,7 @@ const PRECACHE = [
   "manifest.webmanifest",
   "css/themes.css",
   "css/style.css",
+  "css/float.css",
   "css/cover.css",
   "css/pwa.css",
   "js/main.js",

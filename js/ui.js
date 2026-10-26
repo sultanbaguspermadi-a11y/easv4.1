@@ -1,4 +1,4 @@
-import { showFloat, gameInert } from './float.js';
+import { showFloat, gameInert, lockGame } from './float.js';
 // DOM rendering, toasts and dialogs. Reads state; never mutates game rules.
 import { SIZE, DURATIONS, BINGO, TOAST_MS, LAYOUT, GLYPH, FACE, LABEL, NAMES } from './config.js';
 import { TILE_MODES } from './modes.js';
@@ -14,6 +14,7 @@ export function buildDom() {
   for (let i = 0; i < SIZE * SIZE; i++) {
     const d = document.createElement('div'); d.dataset.r = i / SIZE | 0; d.dataset.c = i % SIZE; d.tabIndex = 0; d.setAttribute('role', 'gridcell'); cells.push(d); board.append(d);
   }
+  bindDlg();
   $('#players').innerHTML = [0, 1].map(i => `<div class="panel" id="pn${i}"><div class="phead"><span class="pname">${NAMES[i]}</span><span class="ptime" id="t${i}">25:00</span><span class="pscore" id="sc${i}">0</span></div><div class="rack" id="rk${i}" aria-label="رفّ ${NAMES[i]}"></div></div>`).join('');
   $('#sf').innerHTML = DURATIONS.map(m => `<button class="btn" value="${m}"><b>${m}</b><span>دقيقة</span></button>`).join('');
   $('#mf').innerHTML = Object.values(TILE_MODES).map(m => `<button class="btn modeBtn" value="${m.id}"><span class="mAr">${m.labelAr}</span><span class="mEn">${m.labelEn}</span><span class="mDesc">${m.descAr}</span></button>`).join('');
@@ -32,15 +33,41 @@ export function fail(msg) {
   toast(msg, true);
   const b = $('#board'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
 }
+// Gameplay confirmations float as a light panel (css/float.css, js/float.js) instead of a blocking centred modal; the game behind stays frozen
+// by lockGame('dlg') + S.paused, so the look and the input lock are separate concerns. Rich results (end of game) and every dialogue shown
+// before the match has started (cover, setup flow, resume prompt) stay conventional modals.
+let dlgFocus = null;
+const dlgFloats = () => $('#dlg').open && !$('#dlg').classList.contains('dlgModal');
 export function ask(title, msg, okLabel, fn, onCancel = null, okCls = 'btn danger', cancelLabel = null) {
-  const rich = typeof msg !== 'string';
-  $('#dT').textContent = title; $('#dlg').classList.toggle('result', rich);
+  const rich = typeof msg !== 'string', d = $('#dlg'), floating = !rich && !app.firstRun && $('#cover').hidden;
+  $('#dT').textContent = title; d.classList.toggle('result', rich);
   if (rich) $('#dM').replaceChildren(msg); else $('#dM').textContent = msg;
   const f = $('#dF'); f.innerHTML = '';
   for (const [label, val, cls] of [[okLabel, 'ok', okCls], [cancelLabel || (onCancel ? 'رجوع' : 'إغلاق'), '', 'btn']]) {
     const b = document.createElement('button'); b.className = cls; b.value = val; b.textContent = label; f.append(b);
   }
-  S.paused = true; dlgCb = fn; dlgCancel = onCancel; $('#dlg').returnValue = ''; $('#dlg').showModal();
+  S.paused = true; dlgCb = fn; dlgCancel = onCancel; d.returnValue = '';
+  d.classList.toggle('dlgModal', !floating);
+  $('#dT').title = floating ? 'اسحب لتحريك النافذة · مزدوج النقر لإعادة الموضع' : '';
+  if (!floating) return d.showModal();
+  dlgFocus = document.activeElement; lockGame('dlg', true); d.show(); showFloat('dlg'); $('#dT').focus({preventScroll: true});
+}
+function bindDlg() {
+  const d = $('#dlg');
+  d.addEventListener('close', () => {   // registered before input.js, so the lock is released before any callback can open the next dialogue
+    lockGame('dlg', false);
+    const f = dlgFocus; dlgFocus = null;
+    if (f && f.isConnected && !f.closest('[inert]') && f.focus) f.focus({preventScroll: true});
+  });
+  d.addEventListener('keydown', e => {   // a non-modal dialog ignores Esc natively and does not trap Tab
+    if (!dlgFloats()) return;
+    if (e.key === 'Escape') { e.preventDefault(); d.close(); return; }
+    if (e.key !== 'Tab') return;
+    const ok = [...d.querySelectorAll('button:not(:disabled),[tabindex="0"]')].filter(n => n.offsetParent !== null);
+    if (!ok.length) return;
+    const i = ok.indexOf(document.activeElement), n = e.shiftKey ? (i <= 0 ? ok.length - 1 : i - 1) : (i === ok.length - 1 ? 0 : i + 1);
+    e.preventDefault(); ok[n].focus();
+  });
 }
 // End of game: centred announcement (winner line + one score card per player). rows: [{name, score, ded, bon}], winner: 0 | 1 | -1 (draw).
 const TROPHY = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 01-8 0zM8 6H5v1a3 3 0 003 3M16 6h3v1a3 3 0 01-3 3M12 13v4M9 20h6M10 17h4"/></svg>';

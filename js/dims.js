@@ -27,6 +27,7 @@ export function applyDimensions() {
   r.setProperty('--hist-scale', n('historyScale', d.historyScale));
   r.setProperty('--hist-hs', n('historyHeightScale', d.historyHeightScale));
   r.setProperty('--hist-w', n('historyWidthScale', d.historyWidthScale));
+  document.dispatchEvent(new Event('eas:dims'));   // Floating Workspace derives its default geometry from these values
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(dims)); } catch { /* storage unavailable */ } };
 const show = v => Math.round(v * 100) + '%';

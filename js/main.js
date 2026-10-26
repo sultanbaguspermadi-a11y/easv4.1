@@ -9,6 +9,7 @@ import { initHistoryToggle } from './histview.js';
 import { showCover } from './cover.js';
 import { initDims } from './dims.js';
 import { initLayout } from './layout.js';
+import { initWorkspace } from './float.js';
 import { loadSaved, initPersistence, startFlow, schedule } from './persist.js';
 import { initPwa } from './pwa.js';
 
@@ -19,6 +20,7 @@ function start() {
   initHistoryToggle();
   initLayout();
   buildDom();
+  initWorkspace();   // needs the player panels that buildDom just created; a saved "Floating Workspace: ON" is restored here
   initInput();
   setInterval(tick, TICK_MS);
   newGame();
